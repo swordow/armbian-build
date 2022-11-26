@@ -8,3 +8,4 @@ BOOT_LOGO="desktop"
 BOOT_FDT_FILE="rockchip/rk3399-rock-pi-4b-plus.dtb"
 BOOT_SUPPORT_SPI=yes
 DDR_BLOB="rk33/rk3399_ddr_933MHz_v1.25.bin"
+BOOT_SCENARIO="tpl-spl-blob"
