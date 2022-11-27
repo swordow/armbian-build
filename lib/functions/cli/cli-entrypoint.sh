@@ -16,10 +16,8 @@ function cli_entrypoint() {
 		:
 	else
 		display_alert "This script requires root privileges, trying to use sudo" "" "wrn"
-		display_alert "sudo is not safe. check the reason and recompile again."
-		#exit 1
-		#sudo "${SRC}/compile.sh" "$@"
-		#exit $?
+		sudo "${SRC}/compile.sh" "$@"
+		exit $?
 	fi
 
 	if [ "$OFFLINE_WORK" == "yes" ]; then
