@@ -69,8 +69,8 @@ prepare_host() {
 	# Add support for Ubuntu 20.04, 21.04 and Mint 20.x
 	if [[ $HOSTRELEASE =~ ^(focal|impish|hirsute|jammy|kinetic|ulyana|ulyssa|vanessa|bullseye|uma|una)$ ]]; then
 		hostdeps+=" python2 python3"
-		ln -fs /usr/bin/python2.7 /usr/bin/python2
-		ln -fs /usr/bin/python2.7 /usr/bin/python
+		sudo ln -fs /usr/bin/python2.7 /usr/bin/python2
+		sudo ln -fs /usr/bin/python2.7 /usr/bin/python
 	else
 		hostdeps+=" python libpython-dev"
 	fi
