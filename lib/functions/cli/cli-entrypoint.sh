@@ -17,8 +17,10 @@ function cli_entrypoint() {
 		:
 	else
 		display_alert "This script requires root privileges, trying to use sudo" "" "wrn"
-		sudo "${SRC}/compile.sh" "$@"
-		exit $?
+		display_alert "sudo is not safe. check the reason and recompile again."
+		#exit 1
+		#sudo "${SRC}/compile.sh" "$@"
+		#exit $?
 	fi
 
 	if [ "$OFFLINE_WORK" == "yes" ]; then
@@ -39,21 +41,21 @@ function cli_entrypoint() {
 	handle_vagrant "$@"
 
 	# Purge Armbian Docker images
-	if [[ "${1}" == dockerpurge && -f /etc/debian_version ]]; then
-		display_alert "Purging Armbian Docker containers" "" "wrn"
-		docker container ls -a | grep armbian | awk '{print $1}' | xargs docker container rm &> /dev/null
-		docker image ls | grep armbian | awk '{print $3}' | xargs docker image rm &> /dev/null
-		shift
-		set -- "docker" "$@"
-	fi
-
-	# Docker shell
-	if [[ "${1}" == docker-shell ]]; then
-		shift
-		#shellcheck disable=SC2034
-		SHELL_ONLY=yes
-		set -- "docker" "$@"
-	fi
+#	if [[ "${1}" == dockerpurge && -f /etc/debian_version ]]; then
+#		display_alert "Purging Armbian Docker containers" "" "wrn"
+#		docker container ls -a | grep armbian | awk '{print $1}' | xargs docker container rm &> /dev/null
+#		docker image ls | grep armbian | awk '{print $3}' | xargs docker image rm &> /dev/null
+#		shift
+#		set -- "docker" "$@"
+#	fi
+#
+#	# Docker shell
+#	if [[ "${1}" == docker-shell ]]; then
+#		shift
+#		#shellcheck disable=SC2034
+#		SHELL_ONLY=yes
+#		set -- "docker" "$@"
+#	fi
 
 	handle_docker "$@"
 
