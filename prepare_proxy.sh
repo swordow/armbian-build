@@ -22,4 +22,5 @@
 ## ncat --proxy-type socks5 --proxy example.com:port $1 $2
 ############################################################
 
-
+## alias the aria2 for use proxy
+#alias aria2c="aria2c --http-proxy=http://example.com:port --https-proxy=https://example.com:port "
