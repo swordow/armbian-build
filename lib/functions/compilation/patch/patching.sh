@@ -93,6 +93,8 @@ process_patch_file() {
 
 	if [[ $? -ne 0 ]]; then
 		display_alert "* $status $(basename "${patch}")" "failed" "wrn"
+		echo $(pwd) >> "${DEST}"/${LOG_SUBPATH}/patching.log 2>&1
+		echo "patch --batch --silent -p1 -N < "${patch}" >> "${DEST}"/${LOG_SUBPATH}/patching.log 2>&1" >> "${DEST}"/${LOG_SUBPATH}/patching.log 2>&1
 		[[ $EXIT_PATCHING_ERROR == yes ]] && exit_with_error "Aborting due to" "EXIT_PATCHING_ERROR"
 	else
 		display_alert "* $status $(basename "${patch}")" "" "info"
