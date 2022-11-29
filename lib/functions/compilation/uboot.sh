@@ -83,9 +83,9 @@ compile_uboot() {
 			rm -rf "${atftempdir}"
 		fi
 
-		echo -e "\n\t== u-boot make $BOOTCONFIG ==\n" >> "${DEST}"/${LOG_SUBPATH}/compilation.log
+		echo -e "\n\t== u-boot make $BOOTCONFIG all ==\n" >> "${DEST}"/${LOG_SUBPATH}/compilation.log
 		eval CCACHE_BASEDIR="$(pwd)" env PATH="${toolchain}:${toolchain2}:${PATH}" \
-			'make $CTHREADS $BOOTCONFIG \
+			'make $CTHREADS $BOOTCONFIG all \
 			CROSS_COMPILE="$CCACHE $UBOOT_COMPILER"' \
 			${PROGRESS_LOG_TO_FILE:+' | tee -a $DEST/${LOG_SUBPATH}/compilation.log'} \
 			${OUTPUT_VERYSILENT:+' >/dev/null 2>/dev/null'} 2>> "${DEST}"/${LOG_SUBPATH}/compilation.log

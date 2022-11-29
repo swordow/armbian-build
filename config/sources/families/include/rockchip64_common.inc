@@ -136,7 +136,7 @@ esac
 prepare_boot_configuration() {
 	if [[ $BOOT_SCENARIO == "blobless" || $BOOT_SCENARIO == "tpl-blob-atf-mainline" ]]; then
 
-		UBOOT_TARGET_MAP="BL31=bl31.elf idbloader.img u-boot.itb;;idbloader.img u-boot.itb"
+		UBOOT_TARGET_MAP="BL31=bl31.elf u-boot.itb;;u-boot.itb"
 		ATFSOURCE='https://github.com/ARM-software/arm-trusted-firmware'
 		ATF_COMPILER='aarch64-linux-gnu-'
 		ATFDIR='arm-trusted-firmware'
@@ -145,17 +145,17 @@ prepare_boot_configuration() {
 		ATF_TARGET_MAP="M0_CROSS_COMPILE=arm-linux-gnueabi- PLAT=$BOOT_SOC bl31;;build/$BOOT_SOC/release/bl31/bl31.elf:bl31.elf"
 		ATF_TOOLCHAIN2="arm-linux-gnueabi-:< 10.0"
 
-		[[ $BOOT_SCENARIO == "tpl-blob-atf-mainline" ]] && UBOOT_TARGET_MAP="BL31=bl31.elf idbloader.img u-boot.itb;;idbloader.img u-boot.itb"
+		[[ $BOOT_SCENARIO == "tpl-blob-atf-mainline" ]] && UBOOT_TARGET_MAP="BL31=bl31.elf u-boot.itb;;u-boot.itb"
 
 	elif [[ $BOOT_SCENARIO == "tpl-spl-blob" ]]; then
 
-		UBOOT_TARGET_MAP="BL31=$RKBIN_DIR/$BL31_BLOB idbloader.img u-boot.itb;;idbloader.img u-boot.itb"
+		UBOOT_TARGET_MAP="BL31=$RKBIN_DIR/$BL31_BLOB u-boot.itb;;u-boot.itb"
 		ATFSOURCE=''
 		ATF_COMPILE='no'
 
 	elif [[ $BOOT_SCENARIO == "spl-blobs" ]]; then
 
-		UBOOT_TARGET_MAP="BL31=$RKBIN_DIR/$BL31_BLOB spl/u-boot-spl.bin u-boot.dtb u-boot.itb;;idbloader.img u-boot.itb"
+		UBOOT_TARGET_MAP="BL31=$RKBIN_DIR/$BL31_BLOB spl/u-boot-spl.bin u-boot.dtb u-boot.itb;;u-boot.itb"
 		ATFSOURCE=''
 		ATF_COMPILE='no'
 
