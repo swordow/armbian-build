@@ -67,7 +67,7 @@ elif [[ $BOOT_SOC == rk3399 ]]; then
 	if [[ $BOARD_NAME == "Tinker Board 2" ]]; then
 		DDR_BLOB="${DDR_BLOB:=rk33/rk3399_ddr_800MHz_v1.27.bin}"
 	else
-		DDR_BLOB="${DDR_BLOB:=rk33/rk3399_ddr_933MHz_v1.25.bin}"
+		DDR_BLOB="${DDR_BLOB:=rk33/rk3399_ddr_933MHz_v1.27.bin}"
 	fi
 	MINILOADER_BLOB='rk33/rk3399_miniloader_v1.26.bin'
 	BL31_BLOB='rk33/rk3399_bl31_v1.35.elf'
