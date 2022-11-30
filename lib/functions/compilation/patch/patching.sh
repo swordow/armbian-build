@@ -64,7 +64,17 @@ advanced_patch() {
 		for dir in "${dirs[@]}"; do
 			if [[ -f ${dir%%:*}/$name ]]; then
 				if [[ -s ${dir%%:*}/$name ]]; then
-					process_patch_file "${dir%%:*}/$name" "${dir##*:}"
+					if [[ -s ${dir%%:*}/${name}.enable.sh && -x ${dir%%:*}/${name}.enable.sh ]]; then
+						display_alert "Find patch enable script ${name}.enable.sh" "" "info"
+						${dir%%:*}/${name}.enable.sh "${@}"
+						if [[ $? -ne 0 ]];then
+							process_patch_file "${dir%%:*}/$name" "${dir##*:}"
+						else
+							display_alert "* ${dir##*:} $name not enabled." "skipped"
+						fi
+					else
+						process_patch_file "${dir%%:*}/$name" "${dir##*:}"
+					fi
 				else
 					display_alert "* ${dir##*:} $name" "skipped"
 				fi
