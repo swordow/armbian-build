@@ -9,3 +9,16 @@ index 65423202..ca8955f8 100644
 +CONFIG_DM_RNG=y
 +CONFIG_CMD_KASLRSEED=y
 +CONFIG_RNG_ROCKCHIP=y
+
+diff --git a/configs/rock-pi-4-rk3399_defconfig b/configs/rock-pi-4-rk3399_defconfig
+index f8a57f6838..d6e1b67d31 100644
+--- a/configs/rock-pi-4-rk3399_defconfig
++++ b/configs/rock-pi-4-rk3399_defconfig
+@@ -34,6 +34,7 @@ CONFIG_CMD_GPT=y
+ CONFIG_CMD_MMC=y
+ CONFIG_CMD_PCI=y
+ CONFIG_CMD_USB=y
++CONFIG_CMD_KASLRSEED=y
+ # CONFIG_CMD_SETEXPR is not set
+ CONFIG_CMD_TIME=y
+ CONFIG_SPL_OF_CONTROL=y
