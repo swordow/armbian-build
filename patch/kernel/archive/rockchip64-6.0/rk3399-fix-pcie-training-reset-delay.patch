@@ -1,0 +1,21 @@
+diff --git a/drivers/pci/controller/pcie-rockchip-host.c b/drivers/pci/controller/pcie-rockchip-host.c
+index 7352b5ff8..cd14946ce 100644
+--- a/drivers/pci/controller/pcie-rockchip-host.c
++++ b/drivers/pci/controller/pcie-rockchip-host.c
+@@ -299,6 +303,8 @@ static int rockchip_pcie_host_init_port(struct rockchip_pcie *rockchip)
+ 
+ 	gpiod_set_value_cansleep(rockchip->ep_gpio, 0);
+ 
++	msleep(200);
++
+ 	err = rockchip_pcie_init_port(rockchip);
+ 	if (err)
+ 		return err;
+@@ -327,5 +333,7 @@ static int rockchip_pcie_host_init_port(struct rockchip_pcie *rockchip)
+ 
+ 	gpiod_set_value_cansleep(rockchip->ep_gpio, 1);
+ 
++	msleep(200);
++
+ 	/* 500ms timeout value should be enough for Gen1/2 training */
+ 	err = readl_poll_timeout(rockchip->apb_base + PCIE_CLIENT_BASIC_STATUS1,
