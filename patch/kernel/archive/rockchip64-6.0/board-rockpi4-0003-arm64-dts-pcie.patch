@@ -7,7 +7,7 @@ index 401e1ae9d..f08f2553e 100644
  		regulator-always-on;
  		regulator-boot-on;
 -		vin-supply = <&vcc5v0_sys>;
-+		vin-supply = <&vcc3v3_sys>;
++		vin-supply = <&vcc5v0_sys>;
  	};
  
  	vcc3v3_sys: vcc3v3-sys {
