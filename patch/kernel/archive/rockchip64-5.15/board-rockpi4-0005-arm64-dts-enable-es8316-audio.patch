@@ -6,7 +6,7 @@ index f4a44813c..d092a676e 100644
  		reset-gpios = <&gpio0 RK_PB2 GPIO_ACTIVE_LOW>;
  	};
  
-+	sound {
++	sound: sound {
 +		compatible = "audio-graph-card";
 +		label = "Analog";
 +		dais = <&i2s0_p0>;

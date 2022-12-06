@@ -1,0 +1,18 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index 9d5b0e8c9..0f8756264 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -273,11 +333,11 @@ gmac: ethernet@fe300000 {
+ 		clocks = <&cru SCLK_MAC>, <&cru SCLK_MAC_RX>,
+ 			 <&cru SCLK_MAC_TX>, <&cru SCLK_MACREF>,
+ 			 <&cru SCLK_MACREF_OUT>, <&cru ACLK_GMAC>,
+-			 <&cru PCLK_GMAC>;
++			 <&cru PCLK_GMAC>, <&cru SCLK_RMII_SRC>;
+ 		clock-names = "stmmaceth", "mac_clk_rx",
+ 			      "mac_clk_tx", "clk_mac_ref",
+ 			      "clk_mac_refout", "aclk_mac",
+-			      "pclk_mac";
++			      "pclk_mac", "clk_mac_speed";
+ 		power-domains = <&power RK3399_PD_GMAC>;
+ 		resets = <&cru SRST_A_GMAC>;
+ 		reset-names = "stmmaceth";
