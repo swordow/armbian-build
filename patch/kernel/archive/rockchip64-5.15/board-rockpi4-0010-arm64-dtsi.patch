@@ -1,0 +1,72 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi
+index 100a76916..476018892 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi
+@@ -36,6 +36,23 @@ sdio_pwrseq: sdio-pwrseq {
+ 		reset-gpios = <&gpio0 RK_PB2 GPIO_ACTIVE_LOW>;
+ 	};
+ 
++	sound-dit {
++		compatible = "audio-graph-card";
++		label = "SPDIF";
++		dais = <&spdif_p0>;
++	};
++
++	spdif-dit {
++		compatible = "linux,spdif-dit";
++		#sound-dai-cells = <0>;
++
++		port {
++			dit_p0_0: endpoint {
++				remote-endpoint = <&spdif_p0_0>;
++			};
++		};
++	};
++
+ 	vcc12v_dcin: dc-12v {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vcc12v_dcin";
+@@ -122,11 +146,11 @@ vdd_log: vdd-log {
+ 		compatible = "pwm-regulator";
+ 		pwms = <&pwm2 0 25000 1>;
+ 		regulator-name = "vdd_log";
++		pwm-supply = <&vcc5v0_sys>;
+ 		regulator-always-on;
+ 		regulator-boot-on;
+ 		regulator-min-microvolt = <800000>;
+ 		regulator-max-microvolt = <1400000>;
+-		vin-supply = <&vcc5v0_sys>;
+ 	};
+ };
+ 
+@@ -475,11 +546,13 @@ &pcie_phy {
+ &pcie0 {
+ 	ep-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_HIGH>;
+ 	num-lanes = <4>;
++	max-link-speed = <2>;
+ 	pinctrl-0 = <&pcie_clkreqnb_cpm>;
+ 	pinctrl-names = "default";
+ 	vpcie0v9-supply = <&vcc_0v9>;
+ 	vpcie1v8-supply = <&vcc_1v8>;
+ 	vpcie3v3-supply = <&vcc3v3_pcie>;
++	vpcie12v-supply = <&vcc12v_dcin>;
+ 	status = "okay";
+ };
+ 
+@@ -603,6 +697,16 @@ &sdhci {
+ 	status = "okay";
+ };
+ 
++&spdif {
++
++	spdif_p0: port {
++		spdif_p0_0: endpoint {
++			remote-endpoint = <&dit_p0_0>;
++		};
++	};
++};
++
++
+ &tcphy0 {
+ 	status = "okay";
+ };
