@@ -1,0 +1,121 @@
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+index f3bfaa1a7..107426998 100644
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -300,10 +300,11 @@ static void serial8250_backup_timeout(struct timer_list *t)
+ 		jiffies + uart_poll_timeout(&up->port) + HZ / 5);
+ }
+ 
+-static void univ8250_setup_timer(struct uart_8250_port *up)
++static int univ8250_setup_irq(struct uart_8250_port *up)
+ {
+ 	struct uart_port *port = &up->port;
+-
++	int retval = 0;
++
+ 	/*
+ 	 * The above check will only give an accurate result the first time
+ 	 * the port is opened so this value needs to be preserved.
+@@ -323,16 +323,10 @@ static void univ8250_setup_timer(struct uart_8250_port *up)
+ 	 */
+ 	if (!port->irq)
+ 		mod_timer(&up->timer, jiffies + uart_poll_timeout(port));
+-}
+-
+-static int univ8250_setup_irq(struct uart_8250_port *up)
+-{
+-	struct uart_port *port = &up->port;
+-
+-	if (port->irq)
+-		return serial_link_irq_chain(up);
+-
+-	return 0;
++	else
++		retval = serial_link_irq_chain(up);
++	
++	return retval;
+ }
+ 
+ static void univ8250_release_irq(struct uart_8250_port *up)
+@@ -388,7 +382,6 @@ static struct uart_ops univ8250_port_ops;
+ static const struct uart_8250_ops univ8250_driver_ops = {
+ 	.setup_irq	= univ8250_setup_irq,
+ 	.release_irq	= univ8250_release_irq,
+-	.setup_timer	= univ8250_setup_timer,
+ };
+ 
+ static struct uart_8250_port serial8250_ports[UART_NR];
+diff --git a/drivers/tty/serial/8250/8250_pci.c b/drivers/tty/serial/8250/8250_pci.c
+index 8f0dafbab..b36f82b3e 100644
+--- a/drivers/tty/serial/8250/8250_pci.c
++++ b/drivers/tty/serial/8250/8250_pci.c
+@@ -1232,10 +1232,6 @@ static void pci_oxsemi_tornado_set_mctrl(struct uart_port *port,
+ 	serial8250_do_set_mctrl(port, mctrl);
+ }
+ 
+-/*
+- * We require EFR features for clock programming, so set UPF_FULL_PROBE
+- * for full probing regardless of CONFIG_SERIAL_8250_16550A_VARIANTS setting.
+- */
+ static int pci_oxsemi_tornado_setup(struct serial_private *priv,
+ 				    const struct pciserial_board *board,
+ 				    struct uart_8250_port *up, int idx)
+@@ -1243,7 +1239,6 @@ static int pci_oxsemi_tornado_setup(struct serial_private *priv,
+ 	struct pci_dev *dev = priv->dev;
+ 
+ 	if (pci_oxsemi_tornado_p(dev)) {
+-		up->port.flags |= UPF_FULL_PROBE;
+ 		up->port.get_divisor = pci_oxsemi_tornado_get_divisor;
+ 		up->port.set_divisor = pci_oxsemi_tornado_set_divisor;
+ 		up->port.set_mctrl = pci_oxsemi_tornado_set_mctrl;
+diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
+index 691e7a075..1c6880a8a 100644
+--- a/drivers/tty/serial/8250/8250_port.c
++++ b/drivers/tty/serial/8250/8250_port.c
+@@ -1031,8 +1031,7 @@ static void autoconfig_16550a(struct uart_8250_port *up)
+ 	up->port.type = PORT_16550A;
+ 	up->capabilities |= UART_CAP_FIFO;
+ 
+-	if (!IS_ENABLED(CONFIG_SERIAL_8250_16550A_VARIANTS) &&
+-	    !(up->port.flags & UPF_FULL_PROBE))
++	if (!IS_ENABLED(CONFIG_SERIAL_8250_16550A_VARIANTS))
+ 		return;
+ 
+ 	/*
+@@ -2288,10 +2287,6 @@ int serial8250_do_startup(struct uart_port *port)
+ 	if (port->irq && (up->port.flags & UPF_SHARE_IRQ))
+ 		up->port.irqflags |= IRQF_SHARED;
+ 
+-	retval = up->ops->setup_irq(up);
+-	if (retval)
+-		goto out;
+-
+ 	if (port->irq && !(up->port.flags & UPF_NO_THRE_TEST)) {
+ 		unsigned char iir1;
+ 
+@@ -2334,7 +2329,9 @@ int serial8250_do_startup(struct uart_port *port)
+ 		}
+ 	}
+ 
+-	up->ops->setup_timer(up);
++	retval = up->ops->setup_irq(up);
++	if (retval)
++		goto out;
+ 
+ 	/*
+ 	 * Now, initialize the UART
+@@ -3323,13 +3320,8 @@ static void serial8250_console_restore(struct uart_8250_port *up)
+ 	unsigned int baud, quot, frac = 0;
+ 
+ 	termios.c_cflag = port->cons->cflag;
+-	termios.c_ispeed = port->cons->ispeed;
+-	termios.c_ospeed = port->cons->ospeed;
+-	if (port->state->port.tty && termios.c_cflag == 0) {
++	if (port->state->port.tty && termios.c_cflag == 0)
+ 		termios.c_cflag = port->state->port.tty->termios.c_cflag;
+-		termios.c_ispeed = port->state->port.tty->termios.c_ispeed;
+-		termios.c_ospeed = port->state->port.tty->termios.c_ospeed;
+-	}
+ 
+ 	baud = serial8250_get_baud_rate(port, &termios, NULL);
+ 	quot = serial8250_get_divisor(port, baud, &frac);
