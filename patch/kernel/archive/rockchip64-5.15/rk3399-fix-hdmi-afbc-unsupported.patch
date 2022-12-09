@@ -1,0 +1,17 @@
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+index d5b74ea06..0b6c596ad 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+@@ -304,11 +304,9 @@ static int vop_convert_afbc_format(uint32_t format)
+ 		return AFBC_FMT_RGB565;
+ 	/* either of the below should not be reachable */
+ 	default:
+-		DRM_WARN_ONCE("unsupported AFBC format[%08x]\n", format);
++		DRM_DEBUG_KMS("unsupported AFBC format[%08x]\n", format);
+ 		return -EINVAL;
+ 	}
+-
+-	return -EINVAL;
+ }
+ 
+ static uint16_t scl_vop_cal_scale(enum scale_mode mode, uint32_t src,
