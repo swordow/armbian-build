@@ -1,0 +1,174 @@
+--- cache/sources/linux-mainline/linux-5.15.y/arch/arm64/boot/dts/rockchip/rk3399.dtsi	2022-12-06 18:21:21.980564991 -0800
++++ cache/sources/linux-mainline/linux-6.0.y/arch/arm64/boot/dts/rockchip/rk3399.dtsi	2022-12-06 03:15:14.502427675 -0800
+@@ -9,7 +9,6 @@
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include <dt-bindings/pinctrl/rockchip.h>
+ #include <dt-bindings/power/rk3399-power.h>
+-#include <dt-bindings/suspend/rockchip-rk3399.h>
+ #include <dt-bindings/thermal/thermal.h>
+ 
+ / {
+@@ -154,6 +153,7 @@
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <436>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++
+ 			i-cache-size = <0xC000>;
+ 			i-cache-line-size = <64>;
+ 			i-cache-sets = <256>; // 48KiB(size)/64(line-size)=768ways/3-way set
+@@ -161,6 +161,11 @@
+ 			d-cache-line-size = <64>;
+ 			d-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
+ 			next-level-cache = <&l2_cache0>;
++			thermal-idle {
++				#cooling-cells = <2>;
++				duration-us = <10000>;
++				exit-latency-us = <500>;
++			};
+ 		};
+ 
+ 		cpu_b1: cpu@101 {
+@@ -173,6 +178,7 @@
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <436>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++
+ 			i-cache-size = <0xC000>;
+ 			i-cache-line-size = <64>;
+ 			i-cache-sets = <256>; // 48KiB(size)/64(line-size)=768ways/3-way set
+@@ -180,8 +186,12 @@
+ 			d-cache-line-size = <64>;
+ 			d-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
+ 			next-level-cache = <&l2_cache0>;
++			thermal-idle {
++				#cooling-cells = <2>;
++				duration-us = <10000>;
++				exit-latency-us = <500>;
++			};
+ 		};
+-		
+ 		// 1Mb, 16 way
+ 		l2_cache0: l2-cache0 {
+ 			compatible = "cache";
+@@ -190,7 +200,6 @@
+ 			cache-sets = <1024>; // 1MiB(size)/64(line-size)=16384ways/16-way set
+ 			cache-level = <2>;
+ 		};
+-
+ 		// 512kb, 16 way
+ 		//https://developer.arm.com/documentation/ddi0500/j/Level-2-Memory-System/About-the-L2-memory-system?lang=en
+ 		l2_cache1: l2-cache1 {
+@@ -200,7 +209,6 @@
+ 			cache-sets = <512>; // 512kb(size)/64(line-size)=8192ways/16-way set
+ 			cache-level = <2>;
+ 		};
+-		
+ 		idle-states {
+ 			entry-method = "psci";
+ 
+@@ -1383,7 +1391,6 @@
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff650800 0x0 0x40>;
+ 		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
+-		interrupt-names = "vpu_mmu";
+ 		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
+ 		clock-names = "aclk", "iface";
+ 		#iommu-cells = <0>;
+@@ -1405,7 +1412,6 @@
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff660480 0x0 0x40>, <0x0 0xff6604c0 0x0 0x40>;
+ 		interrupts = <GIC_SPI 117 IRQ_TYPE_LEVEL_HIGH 0>;
+-		interrupt-names = "vdec_mmu";
+ 		clocks = <&cru ACLK_VDU>, <&cru HCLK_VDU>;
+ 		clock-names = "aclk", "iface";
+ 		power-domains = <&power RK3399_PD_VDU>;
+@@ -1428,7 +1434,6 @@
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff670800 0x0 0x40>;
+ 		interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH 0>;
+-		interrupt-names = "iep_mmu";
+ 		clocks = <&cru ACLK_IEP>, <&cru HCLK_IEP>;
+ 		clock-names = "aclk", "iface";
+ 		power-domains = <&power RK3399_PD_IEP>;
+@@ -1501,9 +1506,11 @@
+ 		clock-names = "apb_pclk";
+ 	};
+ 
+-	pmucru: pmu-clock-controller@ff750000 {
++	pmucru: clock-controller@ff750000 {
+ 		compatible = "rockchip,rk3399-pmucru";
+ 		reg = <0x0 0xff750000 0x0 0x1000>;
++		clocks = <&xin24m>;
++		clock-names = "xin24m";
+ 		rockchip,grf = <&pmugrf>;
+ 		#clock-cells = <1>;
+ 		#reset-cells = <1>;
+@@ -1514,6 +1521,8 @@
+ 	cru: clock-controller@ff760000 {
+ 		compatible = "rockchip,rk3399-cru";
+ 		reg = <0x0 0xff760000 0x0 0x1000>;
++		clocks = <&xin24m>;
++		clock-names = "xin24m";
+ 		rockchip,grf = <&grf>;
+ 		#clock-cells = <1>;
+ 		#reset-cells = <1>;
+@@ -1813,7 +1822,6 @@
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff8f3f00 0x0 0x100>;
+ 		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH 0>;
+-		interrupt-names = "vopl_mmu";
+ 		clocks = <&cru ACLK_VOP1>, <&cru HCLK_VOP1>;
+ 		clock-names = "aclk", "iface";
+ 		power-domains = <&power RK3399_PD_VOPL>;
+@@ -1870,7 +1878,6 @@
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff903f00 0x0 0x100>;
+ 		interrupts = <GIC_SPI 118 IRQ_TYPE_LEVEL_HIGH 0>;
+-		interrupt-names = "vopb_mmu";
+ 		clocks = <&cru ACLK_VOP0>, <&cru HCLK_VOP0>;
+ 		clock-names = "aclk", "iface";
+ 		power-domains = <&power RK3399_PD_VOPB>;
+@@ -1908,7 +1915,6 @@
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
+ 		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
+-		interrupt-names = "isp0_mmu";
+ 		clocks = <&cru ACLK_ISP0_WRAPPER>, <&cru HCLK_ISP0_WRAPPER>;
+ 		clock-names = "aclk", "iface";
+ 		#iommu-cells = <0>;
+@@ -1946,7 +1952,6 @@
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff924000 0x0 0x100>, <0x0 0xff925000 0x0 0x100>;
+ 		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH 0>;
+-		interrupt-names = "isp1_mmu";
+ 		clocks = <&cru ACLK_ISP1_WRAPPER>, <&cru HCLK_ISP1_WRAPPER>;
+ 		clock-names = "aclk", "iface";
+ 		#iommu-cells = <0>;
+@@ -2923,27 +2928,4 @@
+ 		};
+ 
+ 	};
+-
+-	rockchip_suspend: rockchip-suspend {
+-		compatible = "rockchip,pm-rk3399";
+-		status = "disabled";
+-		rockchip,sleep-debug-en = <0>;
+-		rockchip,virtual-poweroff = <0>;
+-		rockchip,sleep-mode-config = <
+-			(0
+-			| RKPM_SLP_ARMPD
+-			| RKPM_SLP_PERILPPD
+-			| RKPM_SLP_DDR_RET
+-			| RKPM_SLP_PLLPD
+-			| RKPM_SLP_OSC_DIS
+-			| RKPM_SLP_CENTER_PD
+-			| RKPM_SLP_AP_PWROFF
+-			)
+-		>;
+-		rockchip,wakeup-config = <
+-			(0
+-			| RKPM_GPIO_WKUP_EN
+-			)
+-		>;
+-	};
+ };

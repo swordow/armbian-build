@@ -1,0 +1,108 @@
+--- arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi	2022-12-06 06:40:34.906107299 -0800
++++ ../linux-6.0.y/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi	2022-12-06 03:15:13.694013787 -0800
+@@ -43,6 +43,23 @@
+ 		widgets = "Headphone","Headphones";
+ 	};
+ 
++	sound-dit {
++		compatible = "audio-graph-card";
++		label = "SPDIF";
++		dais = <&spdif_p0>;
++	};
++
++	spdif-dit {
++		compatible = "linux,spdif-dit";
++		#sound-dai-cells = <0>;
++
++		port {
++			dit_p0_0: endpoint {
++				remote-endpoint = <&spdif_p0_0>;
++			};
++		};
++	};
++
+ 	vcc12v_dcin: dc-12v {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vcc12v_dcin";
+@@ -81,8 +98,6 @@
+ 		regulator-name = "vcc3v3_pcie";
+ 		regulator-always-on;
+ 		regulator-boot-on;
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+ 		vin-supply = <&vcc5v0_sys>;
+ 	};
+ 
+@@ -130,12 +145,12 @@
+ 	vdd_log: vdd-log {
+ 		compatible = "pwm-regulator";
+ 		pwms = <&pwm2 0 25000 1>;
++		pwm-supply = <&vcc5v0_sys>;
+ 		regulator-name = "vdd_log";
+ 		regulator-always-on;
+ 		regulator-boot-on;
+ 		regulator-min-microvolt = <800000>;
+ 		regulator-max-microvolt = <1400000>;
+-		vin-supply = <&vcc5v0_sys>;
+ 	};
+ 
+ 	leds {
+@@ -518,21 +533,6 @@
+ 	gpio1830-supply = <&vcc_3v0>;
+ };
+ 
+-&pcie0 {
+-	ep-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_HIGH>;
+-	num-lanes = <4>;
+-	max-link-speed = <1>;
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pcie_clkreqnb_cpm>;
+-	vpcie12v-supply = <&vcc12v_dcin>;
+-	vpcie3v3-supply = <&vcc3v3_pcie>;
+-	status = "okay";
+-};
+-
+-&pcie_phy {
+-	status = "okay";
+-};
+-
+ &pmu_io_domains {
+ 	status = "okay";
+ 
+@@ -548,9 +548,11 @@
+ 	num-lanes = <4>;
+ 	pinctrl-0 = <&pcie_clkreqnb_cpm>;
+ 	pinctrl-names = "default";
++	max-link-speed = <2>;
+ 	vpcie0v9-supply = <&vcc_0v9>;
+ 	vpcie1v8-supply = <&vcc_1v8>;
+ 	vpcie3v3-supply = <&vcc3v3_pcie>;
++	vpcie12v-supply = <&vcc12v_dcin>;
+ 	status = "okay";
+ };
+ 
+@@ -578,7 +580,7 @@
+ 			rockchip,pins = <1 RK_PA1 RK_FUNC_GPIO &pcfg_pull_up>;
+ 		};
+ 	};
+-	
++
+ 	pcie {
+ 		pcie_pwr_en: pcie-pwr-en {
+ 			rockchip,pins = <2 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
+@@ -695,6 +697,15 @@
+ 	status = "okay";
+ };
+ 
++&spdif {
++
++	spdif_p0: port {
++		spdif_p0_0: endpoint {
++			remote-endpoint = <&dit_p0_0>;
++		};
++	};
++};
++
+ &tcphy0 {
+ 	status = "okay";
+ };

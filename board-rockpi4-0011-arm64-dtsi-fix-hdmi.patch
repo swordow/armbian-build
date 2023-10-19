@@ -1,0 +1,101 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi
+index 100a76916..0d59236f3 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rock-pi-4.dtsi
+@@ -36,6 +36,43 @@ sdio_pwrseq: sdio-pwrseq {
+ 		reset-gpios = <&gpio0 RK_PB2 GPIO_ACTIVE_LOW>;
+ 	};
+
++	es8316-sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,name = "rockchip,es8316-codec";
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,widgets =
++			"Microphone", "Mic Jack",
++			"Headphone", "Headphone Jack";
++		simple-audio-card,routing =
++			"Mic Jack", "MICBIAS1",
++			"IN1P", "Mic Jack",
++			"Headphone Jack", "HPOL",
++			"Headphone Jack", "HPOR";
++		simple-audio-card,cpu {
++			sound-dai = <&i2s0>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&es8316>;
++		};
++	}; 
++
++	hdmi_codec: hdmi-codec {
++		status = "okay";
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,name = "HDMI-CODEC";
++
++		simple-audio-card,cpu {
++			sound-dai = <&i2s2>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&hdmi>;
++		};
++	};
++
+ 	vcc12v_dcin: dc-12v {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vcc12v_dcin";
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index 4255e2d7a..4cbca94ef 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -1619,12 +1780,15 @@ i2s2: i2s@ff8a0000 {
+ 
+ 	vopl: vop@ff8f0000 {
+ 		compatible = "rockchip,rk3399-vop-lit";
+-		reg = <0x0 0xff8f0000 0x0 0x3efc>;
++		reg = <0x0 0xff8f0000 0x0 0x600>,
++			<0x0 0xff8f1c00 0x0 0x200>,
++			<0x0 0xff8f2000 0x0 0x400>;
++		reg-names = "regs", "cabc_lut", "gamma_lut";		
+ 		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH 0>;
+ 		assigned-clocks = <&cru ACLK_VOP1>, <&cru HCLK_VOP1>;
+ 		assigned-clock-rates = <400000000>, <100000000>;
+-		clocks = <&cru ACLK_VOP1>, <&cru DCLK_VOP1>, <&cru HCLK_VOP1>;
+-		clock-names = "aclk_vop", "dclk_vop", "hclk_vop";
++		clocks = <&cru ACLK_VOP1>, <&cru DCLK_VOP1>, <&cru HCLK_VOP1>, <&cru DCLK_VOP1_DIV>;
++		clock-names = "aclk_vop", "dclk_vop", "hclk_vop", "dclk_source";
+ 		iommus = <&vopl_mmu>;
+ 		power-domains = <&power RK3399_PD_VOPL>;
+ 		resets = <&cru SRST_A_VOP1>, <&cru SRST_H_VOP1>, <&cru SRST_D_VOP1>;
+@@ -1680,8 +1844,8 @@ vopb: vop@ff900000 {
+ 		interrupts = <GIC_SPI 118 IRQ_TYPE_LEVEL_HIGH 0>;
+ 		assigned-clocks = <&cru ACLK_VOP0>, <&cru HCLK_VOP0>;
+ 		assigned-clock-rates = <400000000>, <100000000>;
+-		clocks = <&cru ACLK_VOP0>, <&cru DCLK_VOP0>, <&cru HCLK_VOP0>;
+-		clock-names = "aclk_vop", "dclk_vop", "hclk_vop";
++		clocks = <&cru ACLK_VOP0>, <&cru DCLK_VOP0>, <&cru HCLK_VOP0>,<&cru DCLK_VOP0_DIV>;
++		clock-names = "aclk_vop", "dclk_vop", "hclk_vop", "dclk_source";
+ 		iommus = <&vopb_mmu>;
+ 		power-domains = <&power RK3399_PD_VOPB>;
+ 		resets = <&cru SRST_A_VOP0>, <&cru SRST_H_VOP0>, <&cru SRST_D_VOP0>;
+@@ -1799,13 +1989,15 @@ simple-audio-card,codec {
+ 	hdmi: hdmi@ff940000 {
+ 		compatible = "rockchip,rk3399-dw-hdmi";
+ 		reg = <0x0 0xff940000 0x0 0x20000>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&hdmi_i2c_xfer>;
+ 		interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH 0>;
+ 		clocks = <&cru PCLK_HDMI_CTRL>,
+ 			 <&cru SCLK_HDMI_SFR>,
+-			 <&cru SCLK_HDMI_CEC>,
++			 <&cru PLL_VPLL>,
+ 			 <&cru PCLK_VIO_GRF>,
+-			 <&cru PLL_VPLL>;
+-		clock-names = "iahb", "isfr", "cec", "grf", "vpll";
++			 <&cru SCLK_HDMI_CEC>;
++		clock-names = "iahb", "isfr", "vpll", "grf", "cec";
+ 		power-domains = <&power RK3399_PD_HDCP>;
+ 		reg-io-width = <4>;
+ 		rockchip,grf = <&grf>;

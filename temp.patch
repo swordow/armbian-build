@@ -1,0 +1,555 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index 4255e2d7a..bed7c7c7d 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -9,6 +9,7 @@
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include <dt-bindings/pinctrl/rockchip.h>
+ #include <dt-bindings/power/rk3399-power.h>
++#include <dt-bindings/suspend/rockchip-rk3399.h>
+ #include <dt-bindings/thermal/thermal.h>
+ 
+ / {
+@@ -65,7 +66,8 @@ core1 {
+ 				};
+ 			};
+ 		};
+-
++		// cortex-a53, L1 icache 2 way , L1 dcache 4way
++		//https://developer.arm.com/documentation/ddi0500/j/Level-1-Memory-System/About-the-L1-memory-system?lang=en
+ 		cpu_l0: cpu@0 {
+ 			device_type = "cpu";
+ 			compatible = "arm,cortex-a53";
+@@ -76,6 +78,13 @@ cpu_l0: cpu@0 {
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <100>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++			i-cache-size = <0x8000>;
++			i-cache-line-size = <64>;
++			i-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <64>;
++			d-cache-sets = <128>; // 32KiB(size)/64(line-size)=512ways/4-way set
++			next-level-cache = <&l2_cache1>;
+ 		};
+ 
+ 		cpu_l1: cpu@1 {
+@@ -88,6 +97,13 @@ cpu_l1: cpu@1 {
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <100>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++			i-cache-size = <0x8000>;
++			i-cache-line-size = <64>;
++			i-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <64>;
++			d-cache-sets = <128>; // 32KiB(size)/64(line-size)=512ways/4-way set
++			next-level-cache = <&l2_cache1>;
+ 		};
+ 
+ 		cpu_l2: cpu@2 {
+@@ -100,6 +116,13 @@ cpu_l2: cpu@2 {
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <100>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++			i-cache-size = <0x8000>;
++			i-cache-line-size = <64>;
++			i-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <64>;
++			d-cache-sets = <128>; // 32KiB(size)/64(line-size)=512ways/4-way set
++			next-level-cache = <&l2_cache1>;
+ 		};
+ 
+ 		cpu_l3: cpu@3 {
+@@ -112,6 +135,13 @@ cpu_l3: cpu@3 {
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <100>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++			i-cache-size = <0x8000>;
++			i-cache-line-size = <64>;
++			i-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <64>;
++			d-cache-sets = <128>; // 32KiB(size)/64(line-size)=512ways/4-way set
++			next-level-cache = <&l2_cache1>;
+ 		};
+ 
+ 		cpu_b0: cpu@100 {
+@@ -124,6 +154,18 @@ cpu_b0: cpu@100 {
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <436>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++			i-cache-size = <0xC000>;
++			i-cache-line-size = <64>;
++			i-cache-sets = <256>; // 48KiB(size)/64(line-size)=768ways/3-way set
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <64>;
++			d-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
++			next-level-cache = <&l2_cache0>;
++			thermal-idle {
++				#cooling-cells = <2>;
++				duration-us = <10000>;
++				exit-latency-us = <500>;
++			};
+ 		};
+ 
+ 		cpu_b1: cpu@101 {
+@@ -136,8 +178,39 @@ cpu_b1: cpu@101 {
+ 			#cooling-cells = <2>; /* min followed by max */
+ 			dynamic-power-coefficient = <436>;
+ 			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP>;
++			i-cache-size = <0xC000>;
++			i-cache-line-size = <64>;
++			i-cache-sets = <256>; // 48KiB(size)/64(line-size)=768ways/3-way set
++			d-cache-size = <0x8000>;
++			d-cache-line-size = <64>;
++			d-cache-sets = <256>; // 32KiB(size)/64(line-size)=512ways/2-way set
++			next-level-cache = <&l2_cache0>;
++			thermal-idle {
++				#cooling-cells = <2>;
++				duration-us = <10000>;
++				exit-latency-us = <500>;
++			};
++		};
++		
++		// 1Mb, 16 way
++		l2_cache0: l2-cache0 {
++			compatible = "cache";
++			cache-size = <0x100000>;
++			cache-line-size = <64>;
++			cache-sets = <1024>; // 1MiB(size)/64(line-size)=16384ways/16-way set
++			cache-level = <2>;
+ 		};
+ 
++		// 512kb, 16 way
++		//https://developer.arm.com/documentation/ddi0500/j/Level-2-Memory-System/About-the-L2-memory-system?lang=en
++		l2_cache1: l2-cache1 {
++			compatible = "cache";
++			cache-size = <0x80000>;
++			cache-line-size = <64>;
++			cache-sets = <512>; // 512kb(size)/64(line-size)=8192ways/16-way set
++			cache-level = <2>;
++		};
++		
+ 		idle-states {
+ 			entry-method = "psci";
+ 
+@@ -166,6 +239,15 @@ display-subsystem {
+ 		ports = <&vopl_out>, <&vopb_out>;
+ 	};
+ 
++	dmc: memory-controller {
++		compatible = "rockchip,rk3399-dmc";
++		rockchip,pmu = <&pmugrf>;
++		devfreq-events = <&dfi>;
++		clocks = <&cru SCLK_DDRC>;
++		clock-names = "dmc_clk";
++		status = "disabled";
++	};
++
+ 	pmu_a53 {
+ 		compatible = "arm,cortex-a53-pmu";
+ 		interrupts = <GIC_PPI 7 IRQ_TYPE_LEVEL_LOW &ppi_cluster0>;
+@@ -252,11 +334,11 @@ gmac: ethernet@fe300000 {
+ 		clocks = <&cru SCLK_MAC>, <&cru SCLK_MAC_RX>,
+ 			 <&cru SCLK_MAC_TX>, <&cru SCLK_MACREF>,
+ 			 <&cru SCLK_MACREF_OUT>, <&cru ACLK_GMAC>,
+-			 <&cru PCLK_GMAC>;
++			 <&cru PCLK_GMAC>, <&cru SCLK_RMII_SRC>;
+ 		clock-names = "stmmaceth", "mac_clk_rx",
+ 			      "mac_clk_tx", "clk_mac_ref",
+ 			      "clk_mac_refout", "aclk_mac",
+-			      "pclk_mac";
++			      "pclk_mac", "clk_mac_speed";
+ 		power-domains = <&power RK3399_PD_GMAC>;
+ 		resets = <&cru SRST_A_GMAC>;
+ 		reset-names = "stmmaceth";
+@@ -361,6 +443,54 @@ usb_host1_ohci: usb@fe3e0000 {
+ 		status = "disabled";
+ 	};
+ 
++	debug@fe430000 {
++		compatible = "arm,coresight-cpu-debug", "arm,primecell";
++		reg = <0 0xfe430000 0 0x1000>;
++		clocks = <&cru PCLK_COREDBG_L>;
++		clock-names = "apb_pclk";
++		cpu = <&cpu_l0>;
++	};
++
++	debug@fe432000 {
++		compatible = "arm,coresight-cpu-debug", "arm,primecell";
++		reg = <0 0xfe432000 0 0x1000>;
++		clocks = <&cru PCLK_COREDBG_L>;
++		clock-names = "apb_pclk";
++		cpu = <&cpu_l1>;
++	};
++
++	debug@fe434000 {
++		compatible = "arm,coresight-cpu-debug", "arm,primecell";
++		reg = <0 0xfe434000 0 0x1000>;
++		clocks = <&cru PCLK_COREDBG_L>;
++		clock-names = "apb_pclk";
++		cpu = <&cpu_l2>;
++	};
++
++	debug@fe436000 {
++		compatible = "arm,coresight-cpu-debug", "arm,primecell";
++		reg = <0 0xfe436000 0 0x1000>;
++		clocks = <&cru PCLK_COREDBG_L>;
++		clock-names = "apb_pclk";
++		cpu = <&cpu_l3>;
++	};
++
++	debug@fe610000 {
++		compatible = "arm,coresight-cpu-debug", "arm,primecell";
++		reg = <0 0xfe610000 0 0x1000>;
++		clocks = <&cru PCLK_COREDBG_B>;
++		clock-names = "apb_pclk";
++		cpu = <&cpu_b0>;
++	};
++
++	debug@fe710000 {
++		compatible = "arm,coresight-cpu-debug", "arm,primecell";
++		reg = <0 0xfe710000 0 0x1000>;
++		clocks = <&cru PCLK_COREDBG_B>;
++		clock-names = "apb_pclk";
++		cpu = <&cpu_b1>;
++	};
++
+ 	usbdrd3_0: usb@fe800000 {
+ 		compatible = "rockchip,rk3399-dwc3";
+ 		#address-cells = <2>;
+@@ -392,6 +522,7 @@ usbdrd_dwc3_0: usb@fe800000 {
+ 			snps,dis_u2_susphy_quirk;
+ 			snps,dis-del-phy-power-chg-quirk;
+ 			snps,dis-tx-ipgap-linecheck-quirk;
++			snps,xhci-trb-ent-quirk;
+ 			power-domains = <&power RK3399_PD_USB3>;
+ 			status = "disabled";
+ 		};
+@@ -428,6 +559,7 @@ usbdrd_dwc3_1: usb@fe900000 {
+ 			snps,dis_u2_susphy_quirk;
+ 			snps,dis-del-phy-power-chg-quirk;
+ 			snps,dis-tx-ipgap-linecheck-quirk;
++			snps,xhci-trb-ent-quirk;
+ 			power-domains = <&power RK3399_PD_USB3>;
+ 			status = "disabled";
+ 		};
+@@ -740,17 +872,17 @@ cpu_thermal: cpu-thermal {
+ 
+ 			trips {
+ 				cpu_alert0: cpu_alert0 {
+-					temperature = <70000>;
++					temperature = <85000>;
+ 					hysteresis = <2000>;
+ 					type = "passive";
+ 				};
+ 				cpu_alert1: cpu_alert1 {
+-					temperature = <75000>;
++					temperature = <95000>;
+ 					hysteresis = <2000>;
+ 					type = "passive";
+ 				};
+ 				cpu_crit: cpu_crit {
+-					temperature = <95000>;
++					temperature = <100000>;
+ 					hysteresis = <2000>;
+ 					type = "critical";
+ 				};
+@@ -1235,6 +1367,16 @@ pwm3: pwm@ff420030 {
+ 		status = "disabled";
+ 	};
+ 
++	dfi: dfi@ff630000 {
++		reg = <0x00 0xff630000 0x00 0x4000>;
++		compatible = "rockchip,rk3399-dfi";
++		rockchip,pmu = <&pmugrf>;
++		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH 0>;
++		clocks = <&cru PCLK_DDR_MON>;
++		clock-names = "pclk_ddr_mon";
++		status = "disabled";
++	};
++
+ 	vpu: video-codec@ff650000 {
+ 		compatible = "rockchip,rk3399-vpu";
+ 		reg = <0x0 0xff650000 0x0 0x800>;
+@@ -1280,6 +1422,18 @@ vdec_mmu: iommu@ff660480 {
+ 		#iommu-cells = <0>;
+ 	};
+ 
++
++	iep: iep@ff670000 {
++		compatible = "rockchip,rk3399-iep", "rockchip,rk3228-iep";
++		reg = <0x0 0xff670000 0x0 0x800>;
++		interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH 0>;
++		interrupt-names = "iep";
++		clocks = <&cru ACLK_IEP>, <&cru HCLK_IEP>;
++		clock-names = "axi", "ahb";
++		power-domains = <&power RK3399_PD_IEP>;
++		iommus = <&iep_mmu>;
++	};
++
+ 	iep_mmu: iommu@ff670800 {
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff670800 0x0 0x40>;
+@@ -1287,6 +1441,7 @@ iep_mmu: iommu@ff670800 {
+ 		interrupt-names = "iep_mmu";
+ 		clocks = <&cru ACLK_IEP>, <&cru HCLK_IEP>;
+ 		clock-names = "aclk", "iface";
++		power-domains = <&power RK3399_PD_IEP>;
+ 		#iommu-cells = <0>;
+ 		status = "disabled";
+ 	};
+@@ -1356,9 +1511,11 @@ dmac_peri: dma-controller@ff6e0000 {
+ 		clock-names = "apb_pclk";
+ 	};
+ 
+-	pmucru: pmu-clock-controller@ff750000 {
++	pmucru: clock-controller@ff750000 {
+ 		compatible = "rockchip,rk3399-pmucru";
+ 		reg = <0x0 0xff750000 0x0 0x1000>;
++		clocks = <&xin24m>;
++		clock-names = "xin24m";
+ 		rockchip,grf = <&pmugrf>;
+ 		#clock-cells = <1>;
+ 		#reset-cells = <1>;
+@@ -1369,6 +1526,8 @@ pmucru: pmu-clock-controller@ff750000 {
+ 	cru: clock-controller@ff760000 {
+ 		compatible = "rockchip,rk3399-cru";
+ 		reg = <0x0 0xff760000 0x0 0x1000>;
++		clocks = <&xin24m>;
++		clock-names = "xin24m";
+ 		rockchip,grf = <&grf>;
+ 		#clock-cells = <1>;
+ 		#reset-cells = <1>;
+@@ -1382,7 +1541,8 @@ cru: clock-controller@ff760000 {
+ 			<&cru HCLK_PERILP1>, <&cru PCLK_PERILP1>,
+ 			<&cru ACLK_VIO>, <&cru ACLK_HDCP>,
+ 			<&cru ACLK_GIC_PRE>,
+-			<&cru PCLK_DDR>;
++			<&cru PCLK_DDR>,
++			<&cru ACLK_VDU>;
+ 		assigned-clock-rates =
+ 			 <594000000>,  <800000000>,
+ 			<1000000000>,
+@@ -1393,7 +1553,8 @@ cru: clock-controller@ff760000 {
+ 			 <100000000>,   <50000000>,
+ 			 <400000000>, <400000000>,
+ 			 <200000000>,
+-			 <200000000>;
++			 <200000000>,
++			 <400000000>;
+ 	};
+ 
+ 	grf: syscon@ff770000 {
+@@ -1543,7 +1704,7 @@ tcphy1_usb3: usb3-port {
+ 		};
+ 	};
+ 
+-	watchdog@ff848000 {
++	wdt:watchdog@ff848000 {
+ 		compatible = "rockchip,rk3399-wdt", "snps,dw-wdt";
+ 		reg = <0x0 0xff848000 0x0 0x100>;
+ 		clocks = <&cru PCLK_WDT>;
+@@ -1769,6 +1930,32 @@ isp0_mmu: iommu@ff914000 {
+ 		rockchip,disable-mmu-reset;
+ 	};
+ 
++	isp1: isp1@ff920000 {
++		compatible = "rockchip,rk3399-cif-isp";
++		reg = <0x0 0xff920000 0x0 0x4000>;
++		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH 0>;
++		clocks = <&cru SCLK_ISP1>,
++			 <&cru ACLK_ISP1_WRAPPER>,
++			 <&cru HCLK_ISP1_WRAPPER>;
++		clock-names = "isp", "aclk", "hclk";
++		iommus = <&isp1_mmu>;
++		phys = <&mipi_dsi1>;
++		phy-names = "dphy";
++		power-domains = <&power RK3399_PD_ISP1>;
++		status = "disabled";
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++		};
++	};
++
+ 	isp1_mmu: iommu@ff924000 {
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff924000 0x0 0x100>, <0x0 0xff925000 0x0 0x100>;
+@@ -1805,7 +1992,7 @@ hdmi: hdmi@ff940000 {
+ 			 <&cru SCLK_HDMI_CEC>,
+ 			 <&cru PCLK_VIO_GRF>,
+ 			 <&cru PLL_VPLL>;
+-		clock-names = "iahb", "isfr", "cec", "grf", "vpll";
++		clock-names = "iahb", "isfr", "cec", "grf", "ref";
+ 		power-domains = <&power RK3399_PD_HDCP>;
+ 		reg-io-width = <4>;
+ 		rockchip,grf = <&grf>;
+@@ -1878,6 +2065,7 @@ mipi_dsi1: mipi@ff968000 {
+ 		rockchip,grf = <&grf>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
++		#phy-cells = <0>;
+ 		status = "disabled";
+ 
+ 		ports {
+@@ -1937,6 +2125,16 @@ edp_in_vopl: endpoint@1 {
+ 		};
+ 	};
+ 
++	rng: rng@ff8b8000 {
++		compatible = "rockchip,cryptov1-rng";
++		reg = <0x0 0xff8b8000 0x0 0x1000>;
++		clocks = <&cru SCLK_CRYPTO1>, <&cru HCLK_S_CRYPTO1>;
++		clock-names = "clk_crypto", "hclk_crypto";
++		assigned-clocks = <&cru SCLK_CRYPTO1>, <&cru HCLK_S_CRYPTO1>;
++		assigned-clock-rates = <150000000>, <100000000>;
++		status = "okay";
++	};
++
+ 	gpu: gpu@ff9a0000 {
+ 		compatible = "rockchip,rk3399-mali", "arm,mali-t860";
+ 		reg = <0x0 0xff9a0000 0x0 0x10000>;
+@@ -1958,7 +2156,7 @@ pinctrl: pinctrl {
+ 		#size-cells = <2>;
+ 		ranges;
+ 
+-		gpio0: gpio0@ff720000 {
++		gpio0: gpio@ff720000 {
+ 			compatible = "rockchip,gpio-bank";
+ 			reg = <0x0 0xff720000 0x0 0x100>;
+ 			clocks = <&pmucru PCLK_GPIO0_PMU>;
+@@ -1971,7 +2169,7 @@ gpio0: gpio0@ff720000 {
+ 			#interrupt-cells = <0x2>;
+ 		};
+ 
+-		gpio1: gpio1@ff730000 {
++		gpio1: gpio@ff730000 {
+ 			compatible = "rockchip,gpio-bank";
+ 			reg = <0x0 0xff730000 0x0 0x100>;
+ 			clocks = <&pmucru PCLK_GPIO1_PMU>;
+@@ -1984,7 +2182,7 @@ gpio1: gpio1@ff730000 {
+ 			#interrupt-cells = <0x2>;
+ 		};
+ 
+-		gpio2: gpio2@ff780000 {
++		gpio2: gpio@ff780000 {
+ 			compatible = "rockchip,gpio-bank";
+ 			reg = <0x0 0xff780000 0x0 0x100>;
+ 			clocks = <&cru PCLK_GPIO2>;
+@@ -1997,7 +2195,7 @@ gpio2: gpio2@ff780000 {
+ 			#interrupt-cells = <0x2>;
+ 		};
+ 
+-		gpio3: gpio3@ff788000 {
++		gpio3: gpio@ff788000 {
+ 			compatible = "rockchip,gpio-bank";
+ 			reg = <0x0 0xff788000 0x0 0x100>;
+ 			clocks = <&cru PCLK_GPIO3>;
+@@ -2010,7 +2208,7 @@ gpio3: gpio3@ff788000 {
+ 			#interrupt-cells = <0x2>;
+ 		};
+ 
+-		gpio4: gpio4@ff790000 {
++		gpio4: gpio@ff790000 {
+ 			compatible = "rockchip,gpio-bank";
+ 			reg = <0x0 0xff790000 0x0 0x100>;
+ 			clocks = <&cru PCLK_GPIO4>;
+@@ -2108,12 +2306,40 @@ pcfg_output_low: pcfg-output-low {
+ 			output-low;
+ 		};
+ 
++		pcfg_input_enable: pcfg-input-enable {
++			input-enable;
++		};
++
++		pcfg_input_pull_up: pcfg-input-pull-up {
++			input-enable;
++			bias-pull-up;
++			drive-strength = <2>;
++		};
++
++		pcfg_input_pull_down: pcfg-input-pull-down {
++			input-enable;
++			bias-pull-down;
++			drive-strength = <2>;
++		};
++
+ 		clock {
+ 			clk_32k: clk-32k {
+ 				rockchip,pins = <0 RK_PA0 2 &pcfg_pull_none>;
+ 			};
+ 		};
+ 
++		cif {
++			cif_clkin: cif-clkin {
++				rockchip,pins =
++					<2 RK_PB2 3 &pcfg_pull_none>;
++			};
++
++			cif_clkouta: cif-clkouta {
++				rockchip,pins =
++					<2 RK_PB3 3 &pcfg_pull_none>;
++			};
++		};
++
+ 		edp {
+ 			edp_hpd: edp-hpd {
+ 				rockchip,pins =
+@@ -2342,25 +2568,25 @@ sdio0_int: sdio0-int {
+ 		sdmmc {
+ 			sdmmc_bus1: sdmmc-bus1 {
+ 				rockchip,pins =
+-					<4 RK_PB0 1 &pcfg_pull_up>;
++					<4 RK_PB0 1 &pcfg_pull_up_8ma>;
+ 			};
+ 
+ 			sdmmc_bus4: sdmmc-bus4 {
+ 				rockchip,pins =
+-					<4 RK_PB0 1 &pcfg_pull_up>,
+-					<4 RK_PB1 1 &pcfg_pull_up>,
+-					<4 RK_PB2 1 &pcfg_pull_up>,
+-					<4 RK_PB3 1 &pcfg_pull_up>;
++					<4 RK_PB0 1 &pcfg_pull_up_8ma>,
++					<4 RK_PB1 1 &pcfg_pull_up_8ma>,
++					<4 RK_PB2 1 &pcfg_pull_up_8ma>,
++					<4 RK_PB3 1 &pcfg_pull_up_8ma>;
+ 			};
+ 
+ 			sdmmc_clk: sdmmc-clk {
+ 				rockchip,pins =
+-					<4 RK_PB4 1 &pcfg_pull_none>;
++					<4 RK_PB4 1 &pcfg_pull_none_12ma>;
+ 			};
+ 
+ 			sdmmc_cmd: sdmmc-cmd {
+ 				rockchip,pins =
+-					<4 RK_PB5 1 &pcfg_pull_up>;
++					<4 RK_PB5 1 &pcfg_pull_up_8ma>;
+ 			};
+ 
+ 			sdmmc_cd: sdmmc-cd {
+@@ -2370,7 +2596,7 @@ sdmmc_cd: sdmmc-cd {
+ 
+ 			sdmmc_wp: sdmmc-wp {
+ 				rockchip,pins =
+-					<0 RK_PB0 1 &pcfg_pull_up>;
++					<0 RK_PB0 1 &pcfg_pull_up_8ma>;
+ 			};
+ 		};
+ 
+@@ -2711,4 +2937,5 @@ pcie_clkreqnb_cpm: pci-clkreqnb-cpm {
+ 		};
+ 
+ 	};
++
+ };
